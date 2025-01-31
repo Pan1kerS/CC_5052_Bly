@@ -1,7 +1,8 @@
 import disnake
 from disnake.ext import commands
+import asyncio
 
-bot = commands.Bot(command_prefix="!", help_command=None, intents=disnake.Intents.all())
+bot = commands.Bot(command_prefix="/", help_command=None, intents=disnake.Intents.all(), test_guilds=[1334403880590770176])
 
 CENSORED_WORDS = ["маму ебал"]
 WELCOME_CHANNEL_ID = 1334403881345744928
@@ -68,7 +69,7 @@ async def on_message(message):
 
 
 # Команды для бота
-@bot.slash_command(name="kick", description="Выгнать с батальона")
+@bot.slash_command()
 # Kick
 @commands.has_permissions(kick_members=True, administrator=True)
 async def kick(inter, member: disnake.Member, *, reason="Нарушение правил"):
@@ -87,13 +88,13 @@ async def kick(inter, member: disnake.Member, *, reason="Нарушение пр
     await inter.message.delete(delay=5)
 
 # Ban
-@bot.slash_command(name="ban", description="Изгнать с батальона")
+@bot.slash_command()
 @commands.has_permissions(ban_members=True, administrator=True)
 async def ban(
         inter: disnake.ApplicationCommandInteraction,
         member: disnake.Member = commands.Param(description="Боец для изгнания"),
         duration: str = commands.Param(
-            description="Длительность бана",
+            description="Длительность изгнания",
             choices=["30 минут", "2 часа", "12 часов", "1 день", "7 дней", "1 месяц", "навсегда"]
         ),
         reason: str = commands.Param(description="Причина изгнания", default="Нарушение правил")
@@ -110,23 +111,27 @@ async def ban(
         "навсегда": None
     }[duration]
 
-    await member.ban(reason=reason)
-    await inter.response.send_message(
-        f"Представитель подразделения {inter.author.mention} изгнал с батальона {member.mention} на {duration}",
-        ephemeral=True
-    )
+    try:
+        await member.ban(reason=reason)
+        await inter.response.send_message(
+            f"Представитель подразделения {inter.author.mention} изгнал с батальона {member.mention} на {duration}",
+            ephemeral=True
+        )
 
-    embed = disnake.Embed(
-        title="Изгнание с батальона",
-        description=f"**Исполнитель наказания**: {inter.author.mention}\n**Нарушитель:** {member.mention}\n**Длительность:** {duration}\n**Причина:** {reason}",
-        color=disnake.Color.red()
-    )
-    await log_channel.send(embed=embed)
+        embed = disnake.Embed(
+            title="Изгнание с батальона",
+            description=f"**Исполнитель наказания**: {inter.author.mention}\n**Нарушитель:** {member.mention}\n**Длительность:** {duration}\n**Причина:** {reason}",
+            color=disnake.Color.red()
+        )
+        await log_channel.send(embed=embed)
 
-    if duration_seconds:
-        await asyncio.sleep(duration_seconds)
-        await member.unban(reason="Истек срок бана")
-        await log_channel.send(f"Участник {member.mention} был разбанен автоматически (истек срок бана)")
+        if duration_seconds:
+            await asyncio.sleep(duration_seconds)
+            await member.unban(reason="Истек срок изгнания")
+            await log_channel.send(f"Боец> {member.mention} может вернуться встрой (истек срок изгнания)")
+
+    except Exception:
+        pass
 
 # Запуск бота
-bot.run("Вставить токен")
+bot.run("")
