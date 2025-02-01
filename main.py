@@ -2,11 +2,14 @@ import disnake
 from disnake.ext import commands
 import asyncio
 
-bot = commands.Bot(command_prefix="/", help_command=None, intents=disnake.Intents.all(), test_guilds=[1334403880590770176])
+bot = commands.Bot(command_prefix="/", help_command=None, intents=disnake.Intents.all(),
+                   test_guilds=[1334403880590770176])
 
 CENSORED_WORDS = ["маму ебал"]
 WELCOME_CHANNEL_ID = 1334403881345744928
 LOG_CHANNEL_ID = 1334528486521573446
+ROLE_MUTE_ID = 1334845457217748992
+muted_roles = {}
 
 
 # Оповещение, что бот запущен
@@ -76,7 +79,7 @@ async def kick(inter, member: disnake.Member, *, reason="Нарушение пр
     log_channel = bot.get_channel(LOG_CHANNEL_ID)
     await member.kick(reason=reason)
     await inter.send(f"Представитель подразделения {inter.author.mention} выгнал с батальона {member.mention}",
-                   delete_after=10)
+                     delete_after=10)
 
     embed = disnake.Embed(
         title="Исключение из батальона",
@@ -87,6 +90,7 @@ async def kick(inter, member: disnake.Member, *, reason="Нарушение пр
 
     await inter.message.delete(delay=5)
 
+
 # Ban
 @bot.slash_command()
 @commands.has_permissions(ban_members=True, administrator=True)
@@ -95,20 +99,20 @@ async def ban(
         member: disnake.Member = commands.Param(description="Боец для изгнания"),
         duration: str = commands.Param(
             description="Длительность изгнания",
-            choices=["30 минут", "2 часа", "12 часов", "1 день", "7 дней", "1 месяц", "навсегда"]
+            choices=["30m", "2h", "12h", "1d", "7d", "1M", "forever"]
         ),
         reason: str = commands.Param(description="Причина изгнания", default="Нарушение правил")
 ):
     log_channel = bot.get_channel(LOG_CHANNEL_ID)
 
     duration_seconds = {
-        "30 минут": 1800,
-        "2 часа": 7200,
-        "12 часов": 43200,
-        "1 день": 86400,
-        "7 дней": 604800,
-        "1 месяц": 2592000,
-        "навсегда": None
+        "30m": 1800,
+        "2h": 7200,
+        "12h": 43200,
+        "1dь": 86400,
+        "7d": 604800,
+        "1M": 2592000,
+        "forever": None
     }[duration]
 
     try:
@@ -127,11 +131,151 @@ async def ban(
 
         if duration_seconds:
             await asyncio.sleep(duration_seconds)
-            await member.unban(reason="Истек срок изгнания")
-            await log_channel.send(f"Боец> {member.mention} может вернуться встрой (истек срок изгнания)")
+            await member.unban(reason="Истек срок бана")
+            await log_channel.send(f"Участник {member.mention} был разбанен автоматически (истек срок бана)")
 
     except Exception:
         pass
+
+
+# Unban
+@bot.slash_command(name="unban", description="Допуск обратно в батальон")
+@commands.has_permissions(ban_members=True, administrator=True)
+async def unban(
+        inter: disnake.ApplicationCommandInteraction,
+        member_id: str = commands.Param(description="ID участника для разбана"),
+        reason: str = commands.Param(description="Причина разбана", default="Прощение")
+):
+    log_channel = bot.get_channel(LOG_CHANNEL_ID)
+
+    try:
+        # Получаем информацию о забаненном участнике
+        banned_users = await inter.guild.bans()
+        member_to_unban = None
+
+        for ban_entry in banned_users:
+            if str(ban_entry.user.id) == member_id:
+                member_to_unban = ban_entry.user
+                break
+
+        if member_to_unban is None:
+            await inter.response.send_message("Участник с таким ID не найден в списке забаненных!", ephemeral=True)
+            return
+
+        # Разбаниваем участника
+        await inter.guild.unban(member_to_unban, reason=reason)
+
+        await inter.response.send_message(
+            f"Представитель подразделения {inter.author.mention} разрешил вернуться {member_to_unban.mention}",
+            ephemeral=True
+        )
+
+        embed = disnake.Embed(
+            title="Возвращение в батальон",
+            description=f"**Исполнитель:** {inter.author.mention}\n**Нарушитель:** {member_to_unban.mention}\n**Причина:** {reason}",
+            color=disnake.Color.green()
+        )
+        await log_channel.send(embed=embed)
+
+    except Exception as e:
+        await inter.response.send_message(
+            f"Произошла ошибка при разбане: {str(e)}",
+            ephemeral=True
+        )
+
+
+# Mute (Доделать)
+@bot.slash_command()
+@commands.has_permissions(manage_messages=True, administrator=True)
+async def mute(inter, member: disnake.Member, duration: str, *, reason="Нарушение правил"):
+    log_channel = bot.get_channel(LOG_CHANNEL_ID)
+    mute_role = member.guild.get_role(ROLE_MUTE_ID)
+
+    duration_seconds = {
+        "30m": 1800,
+        "2h": 7200,
+        "12h": 43200,
+        "1d": 86400,
+        "7d": 604800,
+        "1M": 2592000,
+        "forever": None
+    }[duration]
+
+    mute_role = member.guild.get_role(ROLE_MUTE_ID)
+
+    try:
+        # Сохраняем текущие роли пользователя
+        user_roles = [role for role in member.roles if role != member.guild.default_role]
+        muted_roles[member.id] = user_roles
+
+        # Снимаем все роли и выдаем мут
+        await member.remove_roles(*user_roles, reason="Мут")
+        await member.add_roles(mute_role)
+
+        await inter.response.send_message(
+            f"Представитель подразделения {inter.author.mention} запретил говорить {member.mention} на {duration}",
+            ephemeral=True
+        )
+
+        embed = disnake.Embed(
+            title="Запрет говорить",
+            description=f"**Исполнитель наказания**: {inter.author.mention}\n**Нарушитель:** {member.mention}\n**Длительность:** {duration}\n**Причина:** {reason}",
+            color=disnake.Color.red()
+        )
+        await log_channel.send(embed=embed)
+
+        if duration_seconds:
+            await asyncio.sleep(duration_seconds)
+            # Возвращаем старые роли и снимаем мут
+            await member.remove_roles(mute_role)
+            await member.add_roles(*user_roles)
+            await log_channel.send(f"Участник {member.mention} был размучен автоматически (истек срок мута)")
+
+    except Exception:
+        pass
+
+
+# Unmute (Доделать надо)
+@bot.slash_command(name="unmute", description="Разрешение говорить")
+@commands.has_permissions(manage_messages=True, administrator=True)
+async def unmute(
+        inter: disnake.ApplicationCommandInteraction,
+        member: disnake.Member = commands.Param(description="Бойцу разрешено говорить"),
+        reason: str = commands.Param(description="Причина разрешения", default="Истек срок наказания")
+):
+    log_channel = bot.get_channel(LOG_CHANNEL_ID)
+    mute_role = member.guild.get_role(ROLE_MUTE_ID)
+
+    try:
+        if mute_role not in member.roles:
+            await inter.response.send_message("Этому бойцу можно говорить!", ephemeral=True)
+            return
+
+        # Возвращаем сохраненные роли
+        if member.id in muted_roles:
+            await member.add_roles(*muted_roles[member.id])
+            del muted_roles[member.id]
+
+        await member.remove_roles(mute_role)
+
+        await inter.response.send_message(
+            f"Представитель подразделения {inter.author.mention} разрешил говорить {member.mention}",
+            ephemeral=True
+        )
+
+        embed = disnake.Embed(
+            title="Разрешение говорить",
+            description=f"**Исполнитель:** {inter.author.mention}\n**Нарушитель:** {member.mention}\n**Причина:** {reason}",
+            color=disnake.Color.green()
+        )
+        await log_channel.send(embed=embed)
+
+    except Exception as e:
+        await inter.response.send_message(
+            f"Произошла ошибка при размуте: {str(e)}",
+            ephemeral=True
+        )
+
 
 # Запуск бота
 bot.run("")
