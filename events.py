@@ -1,6 +1,6 @@
 import disnake
 from disnake.ext import commands
-from config import DEFAULT_ROLES_IDS, WELCOME_CHANNEL_ID
+from config import DEFAULT_ROLES_IDS, WELCOME_CHANNEL_ID, CENSORED_WORDS
 
 async def events_bot(bot: commands.Bot):
     # Оповещение, что бот запущен
@@ -26,3 +26,17 @@ async def events_bot(bot: commands.Bot):
 
         except Exception as e:
             print(f"Error in on_member_join: {e}")
+
+    @bot.event
+    async def on_message(message):
+        await bot.process_commands(message)
+
+        if message.author.bot:
+            return
+
+        content = message.content.lower()
+
+        if any(censored_word in content for censored_word in CENSORED_WORDS):
+            await message.delete()
+            await message.channel.send(f"{message.author.mention} Отставить мандалорскую лексику!")
+            return
