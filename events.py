@@ -3,7 +3,6 @@ from disnake.ext import commands
 from config import DEFAULT_ROLES_IDS, WELCOME_CHANNEL_ID, CENSORED_WORDS
 
 async def events_bot(bot: commands.Bot):
-    # Оповещение, что бот запущен
     @bot.event
     async def on_ready():
         print(f'СС 5052 Bly прибыл в расположение штаба')
