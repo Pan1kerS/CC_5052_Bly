@@ -7,6 +7,7 @@ class Kick(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(description="Выгнать пользователя с сервера")
+    @commands.has_permissions(kick_members=True, administrator=True)
     async def kick(self, interaction: disnake.ApplicationCommandInteraction, user: disnake.Member, *, reason: str = "Не указана"):
         log_channel = self.bot.get_channel(LOG_CHANNEL_ID)
         try:
