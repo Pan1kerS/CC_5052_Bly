@@ -9,7 +9,7 @@ class Mute(commands.Cog):
         self.bot.muted_roles = {}
 
 # Mute
-    @commands.slash_command(description="Мутит участника на определенное время")
+    @commands.slash_command(description="Заткнул бойца!")
     @commands.has_permissions(manage_messages=True, administrator=True)
     async def mute(self,
         interaction: disnake.ApplicationCommandInteraction,
@@ -58,7 +58,7 @@ class Mute(commands.Cog):
             await user.add_roles(*self.bot.muted_roles[user.id], reason="Окончание наказания")
             del self.bot.muted_roles[user.id]
 
-            await log_channel.send(f"Участник {user.mention} был размучен автоматически (истек срок мута)")
+            await log_channel.send(f"Бойцу {user.mention} разрешенно говорить, наказание оконченно")
 
 def setup(bot):
     bot.add_cog(Mute(bot))

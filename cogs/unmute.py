@@ -1,7 +1,6 @@
 import disnake
 from disnake.ext import commands
 from config import LOG_CHANNEL_ID, ROLE_MUTE_ID, ALL_ROLE_IDS
-import asyncio
 
 class Unmute(commands.Cog):
     def __init__(self, bot):
