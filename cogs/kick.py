@@ -9,7 +9,7 @@ class Kick(commands.Cog):
     async def kick(self, interaction: disnake.ApplicationCommandInteraction, user: disnake.Member, *, reason: str = "Не указана"):
         try:
             await interaction.guild.kick(user, reason=reason)
-            await interaction.response.send_message(f"Представитель батальона {user.name} выгнал с казармы {user.mention}", ephemeral=True)
+            await interaction.response.send_message(f"Представитель батальона {interaction.author.mention} выгнал с казармы {user.mention}", ephemeral=True)
         except disnake.Forbidden:
             await interaction.response.send_message("У меня нет прав для кика этого пользователя!", ephemeral=True)
         except disnake.HTTPException as e:
