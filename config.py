@@ -78,6 +78,26 @@ SECOND_WARNING_ROLE_ID = [
 THIRD_WARNING_ROLE_ID = [
     1334403880590770183
 ]
+
+# Рапорта
+REPORT_CM_CHANNEL_ID = [ # Рапорт операции
+    1334403882872475707
+]
+REPORT_PROMOTION_CHANNEL_ID = [ # Рапорт повышения
+    1334403883455221780
+]
+REPORT_REPRIMAND_CHANNEL_ID = [ # Рапорт выговор
+    1334403883455221781
+]
+REPORT_ATTESTATION_CHANNEL_ID = [ # Рапорт аттецстации/обучения
+    1334403883455221780
+]
+REPORT_HOLIDAY_CHANNEL_ID = [ # Рапорт отпуск
+    1334403883455221783
+]
+REPORT_TRAINING_CHANNEL_ID = [ # Рапорт повышения
+    1334403883455221784
+]
 # Цензурные слова
 CENSORED_WORDS = ["маму ебал"]
 # ID тестового сервера
