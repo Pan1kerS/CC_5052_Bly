@@ -60,5 +60,5 @@ class Mute(commands.Cog):
 
             await log_channel.send(f"Бойцу {user.mention} разрешенно говорить, наказание оконченно")
 
-def setup(bot):
-    bot.add_cog(Mute(bot))
+async def setup(bot):
+    await bot.add_cog(Mute(bot))

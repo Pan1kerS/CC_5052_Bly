@@ -42,5 +42,6 @@ class Unban(commands.Cog):
                 f"Произошла ошибка при разбане: {str(e)}",
                 ephemeral=True
             )
-def setup(bot):
-    bot.add_cog(Unban(bot))
+
+async def setup(bot):
+    await bot.add_cog(Unban(bot))

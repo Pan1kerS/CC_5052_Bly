@@ -24,5 +24,5 @@ class Kick(commands.Cog):
         )
         await log_channel.send(embed=embed)
 
-def setup(bot):
-    bot.add_cog(Kick(bot))
+async def setup(bot):
+    await bot.add_cog(Kick(bot))

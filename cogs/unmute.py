@@ -58,5 +58,5 @@ class Unmute(commands.Cog):
                 ephemeral=True
             )
 
-def setup(bot):
-    bot.add_cog(Unmute(bot))
+async def setup(bot):
+    await bot.add_cog(Unmute(bot))

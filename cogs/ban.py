@@ -52,5 +52,5 @@ class Ban(commands.Cog):
         except Exception as e:
             print(f"Error in ban command: {e}")
 
-def setup(bot):
-    bot.add_cog(Ban(bot))
+async def setup(bot):
+    await bot.add_cog(Ban(bot))

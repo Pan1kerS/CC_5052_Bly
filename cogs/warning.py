@@ -50,5 +50,5 @@ class Warn(commands.Cog):
         )
         await log_channel.send(embed=embed)
 
-def setup(bot):
-    bot.add_cog(Warn(bot))
+async def setup(bot):
+    await bot.add_cog(Warn(bot))

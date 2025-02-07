@@ -10,9 +10,16 @@ bot = commands.Bot(
     intents=intents,
     test_guilds=TEST_GUILDS
 )
+
+async def load_extensions():
+    for filename in os.listdir("./cogs"):
+        if filename.endswith(".py"):
+            await bot.load_extension(f"cogs.{filename[:-3]}")
+
 @bot.event
 async def on_ready():
     print(f'СС 5052 Bly прибыл в расположение штаба')
+    await load_extensions()
 
 @bot.event
 async def on_member_join(member):
@@ -46,9 +53,5 @@ async def on_message(message):
         await message.delete()
         await message.channel.send(f"{message.author.mention} Отставить мандалорскую лексику!")
         return
-
-for filename in os.listdir("./cogs"):
-        if filename.endswith(".py"):
-            bot.load_extension(f"cogs.{filename[:-3]}")
 
 bot.run(BOT_TOKEN)
