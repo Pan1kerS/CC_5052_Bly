@@ -43,5 +43,5 @@ class Unban(commands.Cog):
                 ephemeral=True
             )
 
-async def setup(bot):
-    await bot.add_cog(Unban(bot))
+def setup(bot):
+    bot.add_cog(Unban(bot))
